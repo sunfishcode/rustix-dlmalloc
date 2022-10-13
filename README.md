@@ -10,7 +10,7 @@ A port of [dlmalloc] to Rust.
 
 [Documentation](https://docs.rs/dlmalloc)
 
-[dlmalloc]: http://gee.cs.oswego.edu/dl/html/malloc.html
+[dlmalloc]: https://gee.cs.oswego.edu/dl/html/malloc.html
 
 ## Why dlmalloc?
 
