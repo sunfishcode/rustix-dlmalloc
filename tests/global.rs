@@ -1,11 +1,11 @@
-extern crate dlmalloc;
+extern crate rustix_dlmalloc;
 
 use std::collections::HashMap;
 use std::thread;
 
 #[global_allocator]
 #[cfg(feature = "global")]
-static A: dlmalloc::GlobalDlmalloc = dlmalloc::GlobalDlmalloc;
+static A: rustix_dlmalloc::GlobalDlmalloc = rustix_dlmalloc::GlobalDlmalloc;
 
 #[test]
 fn foo() {

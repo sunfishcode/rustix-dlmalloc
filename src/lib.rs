@@ -21,7 +21,7 @@ use core::ptr;
 use sys::System;
 
 #[cfg(feature = "global")]
-pub use self::global::{enable_alloc_after_fork, GlobalDlmalloc};
+pub use self::global::GlobalDlmalloc;
 
 mod dlmalloc;
 #[cfg(feature = "global")]

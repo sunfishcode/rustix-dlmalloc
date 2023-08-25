@@ -1,5 +1,5 @@
 use arbitrary::{Result, Unstructured};
-use dlmalloc::Dlmalloc;
+use rustix_dlmalloc::Dlmalloc;
 use std::cmp;
 
 const MAX_ALLOCATED: usize = 100 << 20; // 100 MB

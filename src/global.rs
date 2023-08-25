@@ -2,8 +2,6 @@ use crate::Dlmalloc;
 use core::alloc::{GlobalAlloc, Layout};
 use core::ptr;
 
-pub use crate::sys::enable_alloc_after_fork;
-
 /// An instance of a "global allocator" backed by `Dlmalloc`
 ///
 /// This API requires the `global` feature is activated, and this type

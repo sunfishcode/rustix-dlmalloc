@@ -1,4 +1,13 @@
-# dlmalloc-rs
+# rustix-dlmalloc
+
+This is a port of the [dlmalloc-rs crate] to rustix.
+
+[dlmalloc-rs crate]: https://github.com/alexcrichton/dlmalloc-rs
+
+The "global" feature currently depends on rustix-futex-sync, which is only
+supported on Linux.
+
+## Original README.md follows
 
 A port of [dlmalloc] to Rust.
 
