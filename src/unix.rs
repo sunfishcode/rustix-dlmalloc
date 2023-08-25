@@ -1,7 +1,10 @@
-extern crate libc;
-
 use crate::Allocator;
 use core::ptr;
+use rustix::mm::{MapFlags, MremapFlags, ProtFlags};
+#[cfg(feature = "global")]
+use rustix_futex_sync::lock_api::RawMutex as _;
+#[cfg(feature = "global")]
+use rustix_futex_sync::RawMutex;
 
 /// System setting for Linux
 pub struct System {
@@ -15,35 +18,35 @@ impl System {
 }
 
 #[cfg(feature = "global")]
-static mut LOCK: libc::pthread_mutex_t = libc::PTHREAD_MUTEX_INITIALIZER;
+static mut LOCK: RawMutex = RawMutex::INIT;
 
 unsafe impl Allocator for System {
     fn alloc(&self, size: usize) -> (*mut u8, usize, u32) {
-        let addr = unsafe {
-            libc::mmap(
-                0 as *mut _,
+        let r = unsafe {
+            rustix::mm::mmap_anonymous(
+                ptr::null_mut(),
                 size,
-                libc::PROT_WRITE | libc::PROT_READ,
-                libc::MAP_ANON | libc::MAP_PRIVATE,
-                -1,
-                0,
+                ProtFlags::WRITE | ProtFlags::READ,
+                MapFlags::PRIVATE,
             )
         };
-        if addr == libc::MAP_FAILED {
-            (ptr::null_mut(), 0, 0)
-        } else {
-            (addr as *mut u8, size, 0)
+        match r {
+            Err(_) => (ptr::null_mut(), 0, 0),
+            Ok(addr) => (addr as *mut u8, size, 0),
         }
     }
 
     #[cfg(target_os = "linux")]
     fn remap(&self, ptr: *mut u8, oldsize: usize, newsize: usize, can_move: bool) -> *mut u8 {
-        let flags = if can_move { libc::MREMAP_MAYMOVE } else { 0 };
-        let ptr = unsafe { libc::mremap(ptr as *mut _, oldsize, newsize, flags) };
-        if ptr == libc::MAP_FAILED {
-            ptr::null_mut()
+        let flags = if can_move {
+            MremapFlags::MAYMOVE
         } else {
-            ptr as *mut u8
+            MremapFlags::empty()
+        };
+        let r = unsafe { rustix::mm::mremap(ptr as *mut _, oldsize, newsize, flags) };
+        match r {
+            Err(_) => ptr::null_mut(),
+            Ok(ptr) => ptr as *mut u8,
         }
     }
 
@@ -55,21 +58,26 @@ unsafe impl Allocator for System {
     #[cfg(target_os = "linux")]
     fn free_part(&self, ptr: *mut u8, oldsize: usize, newsize: usize) -> bool {
         unsafe {
-            let rc = libc::mremap(ptr as *mut _, oldsize, newsize, 0);
-            if rc != libc::MAP_FAILED {
-                return true;
+            let r = rustix::mm::mremap(ptr as *mut _, oldsize, newsize, MremapFlags::empty());
+            match r {
+                Ok(_) => return true,
+                Err(_) => {
+                    rustix::mm::munmap(ptr.offset(newsize as isize) as *mut _, oldsize - newsize)
+                        .is_ok()
+                }
             }
-            libc::munmap(ptr.offset(newsize as isize) as *mut _, oldsize - newsize) == 0
         }
     }
 
     #[cfg(target_os = "macos")]
     fn free_part(&self, ptr: *mut u8, oldsize: usize, newsize: usize) -> bool {
-        unsafe { libc::munmap(ptr.offset(newsize as isize) as *mut _, oldsize - newsize) == 0 }
+        unsafe {
+            rustix::mm::munmap(ptr.offset(newsize as isize) as *mut _, oldsize - newsize).is_ok()
+        }
     }
 
     fn free(&self, ptr: *mut u8, size: usize) -> bool {
-        unsafe { libc::munmap(ptr as *mut _, size) == 0 }
+        unsafe { rustix::mm::munmap(ptr as *mut _, size).is_ok() }
     }
 
     fn can_release_part(&self, _flags: u32) -> bool {
@@ -87,47 +95,10 @@ unsafe impl Allocator for System {
 
 #[cfg(feature = "global")]
 pub fn acquire_global_lock() {
-    unsafe { assert_eq!(libc::pthread_mutex_lock(&mut LOCK), 0) }
+    unsafe { LOCK.lock() }
 }
 
 #[cfg(feature = "global")]
 pub fn release_global_lock() {
-    unsafe { assert_eq!(libc::pthread_mutex_unlock(&mut LOCK), 0) }
-}
-
-#[cfg(feature = "global")]
-/// allows the allocator to remain unsable in the child process,
-/// after a call to `fork(2)`
-///
-/// #Safety
-///
-/// if used, this function must be called,
-/// before any allocations are made with the global allocator.
-pub unsafe fn enable_alloc_after_fork() {
-    // atfork must only be called once, to avoid a deadlock,
-    // where the handler attempts to acquire the global lock twice
-    static mut FORK_PROTECTED: bool = false;
-
-    unsafe extern "C" fn _acquire_global_lock() {
-        acquire_global_lock()
-    }
-
-    unsafe extern "C" fn _release_global_lock() {
-        release_global_lock()
-    }
-
-    acquire_global_lock();
-    // if a process forks,
-    // it will acquire the lock before any other thread,
-    // protecting it from deadlock,
-    // due to the child being created with only the calling thread.
-    if !FORK_PROTECTED {
-        libc::pthread_atfork(
-            Some(_acquire_global_lock),
-            Some(_release_global_lock),
-            Some(_release_global_lock),
-        );
-        FORK_PROTECTED = true;
-    }
-    release_global_lock();
+    unsafe { LOCK.unlock() }
 }

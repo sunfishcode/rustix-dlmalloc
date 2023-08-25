@@ -1,6 +1,6 @@
 [package]
-name = "dlmalloc"
-version = "0.2.4"
+name = "rustix-dlmalloc"
+version = "0.0.0"
 authors = ["Alex Crichton <alex@alexcrichton.com>"]
 license = "MIT/Apache-2.0"
 readme = "README.md"
@@ -8,7 +8,7 @@ repository = "https://github.com/alexcrichton/dlmalloc-rs"
 homepage = "https://github.com/alexcrichton/dlmalloc-rs"
 documentation = "https://docs.rs/dlmalloc"
 description = """
-A Rust port of the dlmalloc allocator
+A Rust port of the dlmalloc allocator, ported to rustix
 """
 edition = "2021"
 
@@ -19,7 +19,8 @@ features = ['global']
 doctest = false
 
 [target.'cfg(all(unix, not(target_arch = "wasm32")))'.dependencies]
-libc = { version = "0.2", default-features = false }
+rustix = { version = "0.38.8", default-features = false, features = ["mm"] }
+rustix-futex-sync = "0.1.0"
 
 [dependencies]
 # For more information on these dependencies see rust-lang/rust's

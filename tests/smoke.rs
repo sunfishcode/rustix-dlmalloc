@@ -1,8 +1,8 @@
-extern crate dlmalloc;
 extern crate rand;
+extern crate rustix_dlmalloc;
 
-use dlmalloc::Dlmalloc;
 use rand::Rng;
+use rustix_dlmalloc::Dlmalloc;
 use std::cmp;
 
 #[test]
