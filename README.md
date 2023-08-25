@@ -1,4 +1,10 @@
-# dlmalloc-rs
+# rustix-dlmalloc
+
+This is a port of the [dlmalloc-rs crate] to rustix.
+
+[dlmalloc-rs crate]: https://github.com/alexcrichton/dlmalloc-rs
+
+## Original README.md follows
 
 A port of [dlmalloc] to Rust.
 

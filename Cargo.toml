@@ -1,6 +1,6 @@
 [package]
-name = "dlmalloc"
-version = "0.2.5"
+name = "rustix-dlmalloc"
+version = "0.1.2"
 authors = ["Alex Crichton <alex@alexcrichton.com>"]
 license = "MIT/Apache-2.0"
 readme = "README.md"
@@ -8,7 +8,7 @@ repository = "https://github.com/alexcrichton/dlmalloc-rs"
 homepage = "https://github.com/alexcrichton/dlmalloc-rs"
 documentation = "https://docs.rs/dlmalloc"
 description = """
-A Rust port of the dlmalloc allocator
+A Rust port of the dlmalloc allocator, ported to rustix
 """
 edition.workspace = true
 
@@ -25,7 +25,8 @@ features = ['global']
 doctest = false
 
 [target.'cfg(all(unix, not(target_arch = "wasm32")))'.dependencies]
-libc = { version = "0.2", default-features = false }
+rustix = { version = "0.38.8", default-features = false, features = ["mm"] }
+rustix-futex-sync = { version = "0.2.1", optional = true }
 
 [dependencies]
 # For more information on these dependencies see rust-lang/rust's
@@ -53,7 +54,7 @@ debug-assertions = true
 [features]
 # Enable implementations of the `GlobalAlloc` standard library API, exporting a
 # new `GlobalDlmalloc` as well which implements this trait.
-global = []
+global = ["rustix-futex-sync"]
 
 # Enable very expensive debug checks in this crate
 debug = []
