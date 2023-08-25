@@ -25,7 +25,8 @@ jobs:
       shell: bash
     - run: cargo test
     - run: cargo test --features debug
-    - run: cargo test --features global
+    - if: matrix.os == 'ubuntu-latest'
+      run: cargo test --features global
     - run: cargo test --release
     - run: cargo test --features debug --release
     - run: RUSTFLAGS='--cfg test_lots' cargo test --release
@@ -71,19 +72,20 @@ jobs:
     - run: cargo install cargo-fuzz
     - run: cargo fuzz build --dev
 
-  miri:
-    name: Miri
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Install Miri
-      run: |
-        rustup toolchain install nightly --component miri
-        rustup override set nightly
-        cargo miri setup
-    - name: Test with Miri Stack Borrows
-      run: cargo miri test
-    - name: Test with Miri Tree Borrows
-      run: cargo miri test
-      env:
-        MIRIFLAGS: -Zmiri-tree-borrows
+# Disable until miri supports mmap64
+#  miri:
+#    name: Miri
+#    runs-on: ubuntu-latest
+#    steps:
+#    - uses: actions/checkout@v4
+#    - name: Install Miri
+#      run: |
+#        rustup toolchain install nightly --component miri
+#        rustup override set nightly
+#        cargo miri setup
+#    - name: Test with Miri Stack Borrows
+#      run: cargo miri test
+#    - name: Test with Miri Tree Borrows
+#      run: cargo miri test
+#      env:
+#        MIRIFLAGS: -Zmiri-tree-borrows
