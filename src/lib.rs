@@ -16,9 +16,9 @@
 #![deny(missing_docs)]
 #![cfg_attr(target_arch = "wasm64", feature(simd_wasm64))]
 
+use crate::sys::System;
 use core::cmp;
 use core::ptr;
-use sys::System;
 
 #[cfg(feature = "global")]
 pub use self::global::{enable_alloc_after_fork, GlobalDlmalloc};
@@ -143,7 +143,7 @@ impl<A: Allocator> Dlmalloc<A> {
     /// method contracts.
     #[inline]
     pub unsafe fn free(&mut self, ptr: *mut u8, size: usize, align: usize) {
-        drop((size, align));
+        let _ = (size, align);
         self.0.free(ptr)
     }
 

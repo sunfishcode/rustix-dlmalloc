@@ -10,6 +10,7 @@ documentation = "https://docs.rs/dlmalloc"
 description = """
 A Rust port of the dlmalloc allocator
 """
+edition = "2021"
 
 [package.metadata.docs.rs]
 features = ['global']
