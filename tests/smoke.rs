@@ -1,6 +1,6 @@
 use arbitrary::Unstructured;
-use dlmalloc::Dlmalloc;
 use rand::{rngs::SmallRng, RngCore, SeedableRng};
+use rustix_dlmalloc::Dlmalloc;
 
 #[test]
 fn smoke() {
