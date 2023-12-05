@@ -20,7 +20,7 @@ doctest = false
 
 [target.'cfg(all(unix, not(target_arch = "wasm32")))'.dependencies]
 rustix = { version = "0.38.8", default-features = false, features = ["mm"] }
-rustix-futex-sync = "0.1.0"
+rustix-futex-sync = "0.2.1"
 
 [dependencies]
 # For more information on these dependencies see rust-lang/rust's
