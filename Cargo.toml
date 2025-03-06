@@ -25,7 +25,7 @@ features = ['global']
 doctest = false
 
 [target.'cfg(all(unix, not(target_arch = "wasm32")))'.dependencies]
-rustix = { version = "0.38.8", default-features = false, features = ["mm"] }
+rustix = { version = "1.0.0", default-features = false, features = ["mm"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 rustix-futex-sync = { version = "0.2.1", optional = true }
